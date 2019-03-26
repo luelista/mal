@@ -43,7 +43,7 @@
 
 (do 
  (def! addname-str (fn* [vn nn] (reset! namlist (cons {:vorname vn :nachname nn} @namlist))))
- (addname-str "max" "weller")
+ (addname-str "lue" "elis")
 )
 
 

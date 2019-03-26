@@ -12,7 +12,7 @@
 
 
 (do (def! addname-str (fn* [s] (reset! namlist (cons s @namlist))))
- (addname-str "max") (addname-str "asdf"))
+ (addname-str "lue") (addname-str "asdf"))
 
 (map (fn* [n] (str "Hallo " n "!")) @namlist)
 

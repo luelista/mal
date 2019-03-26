@@ -1,5 +1,5 @@
 (do
-(def! homedir "C:\\Dokumente und Einstellungen\\max\\Eigene Dateien\\")
+(def! homedir "C:\\Dokumente und Einstellungen\\lue\\Eigene Dateien\\")
 (println "Hallo, Welt")
 
 (println (slurp (str homedir "desktop.ini")))
@@ -7,7 +7,7 @@
 )
 
 
-(def! homedir "C:\\Dokumente und Einstellungen\\max\\Eigene Dateien\\")
+(def! homedir "C:\\Dokumente und Einstellungen\\lue\\Eigene Dateien\\")
 
 (def! include (fn* [file] (do (println "Will evaluate " file) (eval (read-string (slurp (str homedir file ".txt")))))))
 
