@@ -1,0 +1,73 @@
+(defmacro! second (fn* [li] `(nth ~li 1)))
+
+(defmacro! void (fn* [f] (list 'do f nil)))
+
+(def! join (fn* [joiner lst] (cond 
+  (empty? lst) "" 
+  (= (count lst) 1)  (first lst)
+  "else" (str (first lst) joiner (join joiner (rest lst)))
+  )))
+
+
+
+
+(do
+(defmacro! template-in (fn* [& items]
+  (if (empty? items) '()
+     (cons 
+       (if (keyword? (first items)) `(get object ~(first items))   (first items) )
+       (apply template-in (rest items))
+   ))))
+
+(defmacro! template (fn* [& items]
+  `(fn* [object] (str ~@(apply template-in items)))))
+
+(prn (macroexpand (template ">>> Adresse: Vorname=" :vorname " Nachname=" :nachname " <<<" )))
+)  
+
+
+(def! AdrlistTemplate (template ">>> Adresse: Vorname=" :vorname " Nachname=" :nachname " <<<" ))
+
+
+((template :foo "hallo" "welt" ) {:foo "hi"} )
+
+
+(def! namlist (atom (list)))
+
+(def! createadr (fn* [] (reset! namlist (cons (readadr) @namlist))))
+
+(def! readadr  (fn* [] {
+      :vorname  (readline "Vorname:  ") 
+      :nachname (readline "Nachname: ")
+ }))
+
+(do 
+ (def! addname-str (fn* [vn nn] (reset! namlist (cons {:vorname vn :nachname nn} @namlist))))
+ (addname-str "max" "weller")
+)
+
+
+(def! multirun (fn* [what] (if (= (readline "weitere hinzfg? [j]/n ") "n") nil (do (what) (multirun what)))))
+
+(if (not (nil? readline))
+	(multirun createadr)
+	(println "ERROR: kein Readline")
+)
+
+
+(println "Drucke Begruessungen")
+
+(println (join "\n" (map (template "Hallo " :vorname " " :nachname "!")  @namlist)))
+
+(println (join "\n" (map AdrlistTemplate @namlist)))
+
+(println (join "\n" (map (fn* [n] (str "Hallo " (AdrlistTemplate n) "!")) @namlist)))
+
+
+(println)
+(println "Drucke Namensliste")
+(println (join ", " (map (fn* [n] (str "<" n ">")) @namlist)))
+
+
+(readline "weiter mit beliebiger taste")
+

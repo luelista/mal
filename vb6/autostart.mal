@@ -1,0 +1,131 @@
+(load-file "scintilla.mal")
+
+(def! c* callbyname)
+
+(defmacro! second (fn* [li] `(nth ~li 1)))
+
+(defmacro! void (fn* [& f] `(do ~f nil)))
+
+(def! join (fn* [joiner lst] (cond 
+	(empty? lst) "" 
+	(= (count lst) 1)  (first lst)
+	"else" (str (first lst) joiner (join joiner (rest lst)))
+)))
+
+(defmacro! template-in (fn* [& items]
+	(if (empty? items) '()
+		(cons 
+			(if (keyword? (first items)) `(get object ~(first items))   (first items) )
+			(apply template-in (rest items))
+	))))
+
+(defmacro! template (fn* [& items]
+	`(fn* [object] (str ~@(apply template-in items)))))
+
+(def! seq (fn* [a b]
+	(if (< a b) (cons a (seq (+ 1 a) b)) (list b))
+))
+
+(def! clear-actions (fn* []
+	(map (fn* [i] (add-action "" nil i)) (seq 0 20))
+))
+
+(def! http-get (fn* [url]
+	(let* (xhr (create-object "MSXML2.XMLHTTP"))
+		(do
+			(c* xhr :open "GET" url false)
+			(c* xhr :send)
+			(c* :get xhr :responseText)
+		)
+	)))
+
+(def! show-my-ip (fn* []
+	(println "My IP is " (http-get "http://luelistan.net/?xenoredir"))
+))
+
+(def! lightswitch (fn* [ip num]
+	`(tasmota ~ip (str "POWER" ~num "%20TOGGLE"))
+))
+
+(def! tasmota (fn* [ip cmnd]
+	(http-get (str "http://" ip "/cm?user=admin&password=xxxxx&cmnd=" cmnd))
+))
+
+
+(def! action-menus (list
+	(fn* [] (do
+		(add-action "editor" '(show-editor) 1)
+		(add-action "cls" '(clear-transcript) )
+		(add-action "ip" '(show-my-ip) )
+	))
+	
+	(fn* [] (do
+	
+		(add-action "tür" (lightswitch "10.83.42.42" 1) 5)
+		(add-action "rgb" (lightswitch "10.83.42.41" 1) )
+		(add-action "sofa" (lightswitch "10.83.42.25" 4) )
+		(add-action "neon" (lightswitch "10.83.42.25" 2) )
+		(add-action "schreibt."(lightswitch  "10.83.42.25" 3) )
+		
+		(add-action "R" (lightswitch "10.83.42.20" 1) 11)
+		(add-action "G" (lightswitch "10.83.42.20" 2) )
+		(add-action "B" (lightswitch "10.83.42.20" 3))
+		
+		
+		(add-action "alles aus" '(do
+			(tasmota "10.83.42.42" "POWER OFF")
+			(tasmota "10.83.42.41" "POWER OFF")
+			(tasmota "10.83.42.25" "backlog POWER1 OFF; POWER2 OFF; POWER3 OFF; POWER4 OFF")
+			(tasmota "10.83.42.20" "backlog POWER1 OFF; POWER2 OFF; POWER3 OFF; POWER4 OFF")
+		) 15)
+	))
+
+))
+
+(def! sel-action-menu (atom 0))
+
+(def! show-action-menu (fn*  [idx]
+	(do
+		(clear-actions)
+		((nth action-menus idx))
+		(add-action (str (+ 1 idx)) '(void cycle-action-menu) 0)
+	idx
+  )))
+
+(def! cycle-action-menu (fn* []
+	(let* (next (+ 1 @sel-action-menu))
+		(reset! sel-action-menu (show-action-menu (if (>= next (count action-menus)) 0 next)))
+)))
+
+(show-action-menu 0)
+
+(println "Autostart script OK" (time-ms))
+
+(save-setting "GUI" "startup-script" "Z:\data\Multimedia\Public_Backup\lisp\interpreter\autostart.mal")
+
+(def! sci-send (fn* [msg a b]
+	(c* editor-form :sci_send (get sc msg) a b)))
+
+(map (fn* [i]
+	(sci-send :SCI_STYLESETFORE i (* i 100))
+  ) (seq 0 20))
+
+
+;(c* editor-form :sci_setstring (get sc :SCI_SETLEXERLANGUAGE) 0 "lisp")
+(c* editor-form :sci_setstring (get sc :SCI_STYLESETFONT) 32 "Courier New")
+(sci-send :SCI_STYLESETSIZE 32 11)
+(sci-send :SCI_STYLESETBACK 34 6200000)
+(sci-send :SCI_SETLEXER 21 0)
+
+(sci-send :SCI_ASSIGNCMDKEY  0)
+
+(def! matchbrace (fn* []
+	(let* 
+	  (pos (sci-send :SCI_GETSELECTIONSTART 0 0))
+	  (sci-send :SCI_BRACEHIGHLIGHT pos (sci-send :SCI_BRACEMATCH pos 0))
+         )))
+
+
+
+
+

@@ -1,0 +1,24 @@
+(defmacro! void (fn* [f] (list 'do f nil)))
+
+(def! join (fn* [joiner lst] (cond 
+  (empty? lst) "empty" 
+  (= (count lst) 1) (str "one" (first lst))
+  "else" (str (first lst) joiner (join joiner (rest lst)))
+  )))
+
+(def! namlist (atom (list)))
+
+(def! addname (fn* [] (reset! namlist (cons (readline "name: ") @namlist))))
+
+
+(do (def! addname-str (fn* [s] (reset! namlist (cons s @namlist))))
+ (addname-str "max") (addname-str "asdf"))
+
+(map (fn* [n] (str "Hallo " n "!")) @namlist)
+
+(join ", " @namlist)
+
+
+
+(readline "weiter mit beliebiger taste")
+
